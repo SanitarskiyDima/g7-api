@@ -105,7 +105,7 @@ describe('PetStore test suit', () => {
         })
     })
 
-    it('Deletes pet', () => {
+    it('Delete pet', () => {
 
         cy.log('Find pet by id');
         cy.request(`/pet/${petId}`).then(response => {
