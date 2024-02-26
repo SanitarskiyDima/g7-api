@@ -9,6 +9,7 @@ describe('PetStore test suit', () => {
     let date;
 
     it('Create pet', () => {
+        cy.log('Create pet');
         cy.request('POST', '/pet', pet).then(response => {
             expect(response.status).to.be.equal(200);
             expect(response.body.name).to.be.equal(pet.name);
@@ -28,6 +29,7 @@ describe('PetStore test suit', () => {
     })
 
     it('Get pet by id', () => {
+        cy.log('Get pet by id');
         cy.request(`/pet/${petId}`).then(response => {
             expect(response.status).to.be.equal(200);
             expect(response.body.name).to.be.equal(pet.name);
@@ -39,6 +41,7 @@ describe('PetStore test suit', () => {
         pet.tags[0].name = faker.hacker.verb();
         pet.tags[0].id = faker.number.int({ min: 100000, max: 1000000});
 
+        cy.log('Update pet');
         cy.request({
             method: 'PUT',
             url: '/pet',
@@ -63,6 +66,7 @@ describe('PetStore test suit', () => {
     it('Update pet with form data', () => {
         pet.name = faker.hacker.verb();
 
+        cy.log('Update pet');
         cy.request({
             method: 'POST',
             url: `/pet/${petId}`,
@@ -81,6 +85,50 @@ describe('PetStore test suit', () => {
                 expect(response.body.tags[0].id).to.be.equal(pet.tags[0].id);
                 expect(response.body.tags[0].name).to.be.equal(pet.tags[0].name);
             })
+        })
+    })
+
+    it('Find Pets by status', () => {
+        cy.log('Find pet by status');
+        cy.request({
+            method: 'GET',
+            url: "pet/findByStatus?status=pending",
+            form: true,
+            body: pet
+
+        }).then(response => {
+            expect(response.status).to.be.equal(200);
+            expect(response.body).to.be.an('array');
+            response.body.forEach(pet => {
+                expect(pet.status).to.be.equal("pending");
+            });
+        })
+    })
+
+    it('Deletes pet', () => {
+
+        cy.log('Find pet by id');
+        cy.request(`/pet/${petId}`).then(response => {
+            expect(response.status).to.be.equal(200);
+            expect(response.body.name).to.be.equal(pet.name);
+        })
+
+        cy.log('Delete found pet');
+        cy.request({
+            method: 'DELETE',
+            url: `/pet/${petId}`
+        }).then(deleteResponse => {
+            expect(deleteResponse.status).to.equal(200);
+        })
+
+        cy.log('Check that pet is removed');
+        cy.request({
+            method: 'GET',
+            url: `/pet/${petId}`,
+            failOnStatusCode: false
+        }).then(verifyResponse => {
+            expect(verifyResponse.status).to.equal(404);
+            expect(verifyResponse.body.message).to.contain('Pet not found');
         })
     })
 })
